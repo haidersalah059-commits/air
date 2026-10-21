@@ -1,0 +1,54 @@
+{% load i18n %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as BIDI %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if BIDI %}rtl{% else %}ltr{% endif %}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% translate "E-ticket / invoice" %} {{ booking.pnr }}</title>
+<style>
+  body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; color: #222; background: #f3f4f6; margin: 0; padding: 24px; }
+  .sheet { max-width: 820px; margin: auto; background: #fff; padding: 32px; border-radius: 8px; box-shadow: 0 1px 4px #0002; }
+  header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0d47a1; padding-bottom: 12px; }
+  h1 { margin: 0; color: #0d47a1; font-size: 22px; }
+  .pnr { font-size: 28px; font-weight: 700; letter-spacing: 3px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 14px; }
+  th, td { padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: start; }
+  th { background: #f1f5f9; }
+  .total { font-size: 18px; font-weight: 700; text-align: end; margin-top: 14px; }
+  .muted { color: #6b7280; font-size: 12px; }
+  button { margin-top: 18px; padding: 8px 18px; }
+  @media print { body { background: #fff; padding: 0; } .sheet { box-shadow: none; } button { display: none; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <header>
+    <div><h1>✈ {{ airline }}</h1><div class="muted">{% translate "E-ticket / invoice" %}</div></div>
+    <div style="text-align:end"><div class="muted">{% translate "PNR" %}</div><div class="pnr">{{ booking.pnr }}</div></div>
+  </header>
+  <p class="muted">{% translate "booking date" %}: {{ booking.booking_date|date:"Y-m-d H:i" }} · {% translate "contact email" %}: {{ booking.contact_email }}</p>
+
+  <table>
+    <thead><tr><th>{% translate "ticket number" %}</th><th>{% translate "passenger" %}</th><th>{% translate "Flight" %}</th>
+      <th>{% translate "departure" %}</th><th>{% translate "seat" %}</th><th>{% translate "Class" %}</th><th>{% translate "price" %}</th></tr></thead>
+    <tbody>
+    {% for t in tickets %}
+      <tr><td>{{ t.ticket_no }}</td><td>{{ t.passenger.full_name }}<div class="muted">{{ t.passenger.passport_no }}</div></td>
+          <td>{{ t.flight.flight_no }}<div class="muted">{{ t.flight.origin }} → {{ t.flight.destination }}</div></td>
+          <td>{{ t.flight.departure_time|date:"Y-m-d H:i" }}</td><td>{{ t.seat.seat_number }}</td>
+          <td>{{ t.get_seat_class_display }}</td><td>{{ t.price }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <table>
+    <thead><tr><th>{% translate "date" %}</th><th>{% translate "status" %}</th><th>{% translate "method" %}</th><th>{% translate "reference" %}</th><th>{% translate "amount" %}</th></tr></thead>
+    {% for p in payments %}
+      <tr><td>{{ p.paid_at|date:"Y-m-d H:i" }}</td><td>{{ p.get_status_display }}</td><td>{{ p.get_method_display }}</td><td>{{ p.reference }}</td><td>{{ p.amount }}</td></tr>
+    {% endfor %}
+  </table>
+  <div class="total">{% translate "total amount" %}: {{ booking.total_amount }} {{ currency }}</div>
+  <p class="muted">{% translate "Please arrive at the airport at least 2 hours before departure with a valid passport." %}</p>
+  <button onclick="window.print()">{% translate "Print" %}</button>
+</div>
+</body>
+</html>

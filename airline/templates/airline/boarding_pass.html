@@ -1,0 +1,58 @@
+{% load i18n %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as BIDI %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if BIDI %}rtl{% else %}ltr{% endif %}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% translate "Boarding pass" %} {{ ticket.flight.flight_no }} {{ ticket.seat.seat_number }}</title>
+<style>
+  body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: #f3f4f6; margin: 0; padding: 24px; color: #222; }
+  .pass { max-width: 760px; margin: auto; display: flex; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0002; }
+  .main { flex: 1; padding: 22px 26px; }
+  .stub { width: 210px; padding: 22px; border-inline-start: 2px dashed #cbd5e1; text-align: center; }
+  .top { background: #0d47a1; color: #fff; padding: 12px 26px; display: flex; justify-content: space-between; font-weight: 600; }
+  .route { display: flex; align-items: center; gap: 18px; margin: 14px 0; direction: ltr; justify-content: flex-start; }
+  .code { font-size: 40px; font-weight: 700; }
+  .city { color: #6b7280; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+  .lbl { color: #6b7280; font-size: 11px; text-transform: uppercase; }
+  .val { font-size: 18px; font-weight: 600; }
+  .qr svg { width: 160px; height: 160px; }
+  button { display: block; margin: 18px auto; padding: 8px 18px; }
+  @media print { body { background: #fff; padding: 0; } .pass { box-shadow: none; border: 1px solid #ccc; } button { display: none; } }
+  @media (max-width: 640px) { .pass { flex-direction: column; } .stub { width: auto; border-inline-start: 0; border-top: 2px dashed #cbd5e1; } }
+</style>
+</head>
+<body>
+<div class="pass">
+  <div style="flex:1">
+    <div class="top"><span>✈ {{ airline }}</span><span>{% translate "Boarding pass" %}</span></div>
+    <div class="main">
+      <div class="lbl">{% translate "passenger" %}</div>
+      <div class="val">{{ ticket.passenger.last_name|upper }} / {{ ticket.passenger.first_name|upper }}</div>
+      <div class="route">
+        <div><div class="code">{{ ticket.flight.origin.code }}</div><div class="city">{{ ticket.flight.origin.city }}</div></div>
+        <div style="font-size:28px">✈</div>
+        <div><div class="code">{{ ticket.flight.destination.code }}</div><div class="city">{{ ticket.flight.destination.city }}</div></div>
+      </div>
+      <div class="grid">
+        <div><div class="lbl">{% translate "Flight" %}</div><div class="val">{{ ticket.flight.flight_no }}</div></div>
+        <div><div class="lbl">{% translate "date" %}</div><div class="val">{{ ticket.flight.departure_time|date:"Y-m-d" }}</div></div>
+        <div><div class="lbl">{% translate "departure" %}</div><div class="val">{{ ticket.flight.departure_time|date:"H:i" }}</div></div>
+        <div><div class="lbl">{% translate "Boarding time" %}</div><div class="val">{{ boarding_time|date:"H:i" }}</div></div>
+        <div><div class="lbl">{% translate "gate" %}</div><div class="val">{{ ticket.flight.gate|default:"—" }}</div></div>
+        <div><div class="lbl">{% translate "seat" %}</div><div class="val">{{ ticket.seat.seat_number }}</div></div>
+        <div><div class="lbl">{% translate "Class" %}</div><div class="val">{{ ticket.get_seat_class_display }}</div></div>
+        <div><div class="lbl">{% translate "PNR" %}</div><div class="val">{{ ticket.booking.pnr }}</div></div>
+        <div><div class="lbl">{% translate "ticket number" %}</div><div class="val" style="font-size:14px">{{ ticket.ticket_no }}</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="stub">
+    <div class="qr">{{ qr_svg }}</div>
+    <div class="val">{{ ticket.flight.flight_no }} · {{ ticket.seat.seat_number }}</div>
+    <div class="city">{{ ticket.passenger.full_name }}</div>
+  </div>
+</div>
+<button onclick="window.print()">{% translate "Print" %}</button>
+</body>
+</html>

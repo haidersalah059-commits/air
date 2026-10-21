@@ -1,0 +1,104 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<style>
+  /* ---- Airline theme ---- */
+  :root, html[data-theme="light"] {
+    --primary: #0b3d6e; --secondary: #0b3d6e; --accent: #f5b301;
+    --primary-fg: #fff; --header-color: #fff; --header-branding-color: #fff;
+    --header-bg: #0b3d6e; --header-link-color: #fff;
+    --breadcrumbs-bg: #e8f1fb; --breadcrumbs-fg: #4a6a8a; --breadcrumbs-link-fg: #0b5cad;
+    --link-fg: #0b5cad; --link-hover-color: #073b72; --link-selected-fg: #073b72;
+    --button-bg: #0b5cad; --button-hover-bg: #073b72;
+    --default-button-bg: #f5b301; --default-button-hover-bg: #dc9f00;
+    --body-bg: #f4f7fb; --darkened-bg: #fff; --selected-row: #fff8e1;
+    --font-family-primary: "Cairo", "Segoe UI", Tahoma, sans-serif;
+  }
+  body { background: var(--body-bg); font-family: var(--font-family-primary); }
+  #header {
+    background: linear-gradient(135deg, #072a4d 0%, #0b3d6e 55%, #1a6fc4 100%);
+    padding: 14px 32px; box-shadow: 0 2px 10px rgba(7, 42, 77, .25);
+  }
+  #site-name { font-weight: 700; font-size: 22px; }
+  #site-name a::before { content: "✈ "; color: var(--accent); }
+  #user-tools { font-size: 12px; }
+  div.breadcrumbs { background: var(--breadcrumbs-bg); color: var(--breadcrumbs-fg); border-bottom: 1px solid #d6e4f3; }
+  #content h1 { color: #0b3d6e; font-weight: 700; }
+  .module { border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(11, 61, 110, .08); background: var(--darkened-bg); }
+  .module h2, .module caption, .inline-group h2 {
+    background: linear-gradient(90deg, #0b3d6e, #1a6fc4); font-weight: 600; font-size: 14px; padding: 10px 14px;
+  }
+  .module h2 a, .module caption a { color: #fff; text-decoration: none; }
+  .button, input[type=submit], input[type=button], .submit-row input, a.button { border-radius: 8px; font-family: inherit; }
+  #changelist-filter { border-radius: 10px; overflow: hidden; }
+  #login-form, .login #container { border-radius: 14px; }
+  .login #header { justify-content: center; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --body-bg: #121a24; --darkened-bg: #1b2531; --breadcrumbs-bg: #18222e; }
+  }
+  html[data-theme="dark"] { --body-bg: #121a24; --darkened-bg: #1b2531; --breadcrumbs-bg: #18222e; }
+
+  /* ---- Dashboard ---- */
+  .airline-hero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+                  background: linear-gradient(135deg, #0b3d6e, #1a6fc4); color: #fff; border-radius: 14px;
+                  padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(11, 61, 110, .25); }
+  .airline-hero h2 { margin: 0; font-size: 22px; color: #fff; background: none; padding: 0; }
+  .airline-hero p { margin: 4px 0 0; opacity: .85; }
+  .airline-hero .plane { font-size: 44px; line-height: 1; }
+  .airline-cards .icon { font-size: 22px; float: inline-end; opacity: .85; }
+  .airline-card.blue { border-top: 4px solid #1a6fc4; }
+  .airline-card.orange { border-top: 4px solid #ef6c00; }
+  .airline-card.red { border-top: 4px solid #c62828; }
+  .airline-card.green { border-top: 4px solid #2e7d32; }
+  .airline-card.purple { border-top: 4px solid #6a1b9a; }
+  .airline-card.gold { border-top: 4px solid #f5b301; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .badge-scheduled { background: #e3f2e5; color: #2e7d32; }
+  .badge-delayed { background: #fff1e0; color: #e65100; }
+  .badge-boarding { background: #e3effc; color: #0b5cad; }
+  .badge-departed, .badge-arrived { background: #ede7f6; color: #5e35b1; }
+  .badge-cancelled { background: #fdecea; color: #c62828; }
+  .flight-no { font-weight: 700; letter-spacing: .5px; }
+  .airline-table tbody tr:hover { background: var(--selected-row); }
+  .lang-switch { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer;
+                 text-decoration: underline; }
+  .airline-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .airline-card { border-radius: 12px; padding: 16px 18px; background: var(--darkened-bg);
+                  box-shadow: 0 1px 6px rgba(11, 61, 110, .1); transition: transform .15s, box-shadow .15s; }
+  .airline-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(11, 61, 110, .15); }
+  .airline-card .num { font-size: 28px; font-weight: 700; color: var(--body-fg); }
+  .airline-card .lbl { color: var(--body-quiet-color); font-size: 13px; margin-top: 4px; }
+  .airline-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .airline-actions a.button { padding: 10px 18px; font-weight: 600; background: rgba(255, 255, 255, .15);
+                              color: #fff; border: 1px solid rgba(255, 255, 255, .35); text-decoration: none; }
+  .airline-actions a.button:hover { background: rgba(255, 255, 255, .28); }
+  .airline-actions a.button.default { background: var(--accent); color: #072a4d; border-color: var(--accent); }
+  .airline-table { width: 100%; }
+  .airline-bar { background: var(--hairline-color); border-radius: 3px; height: 10px; min-width: 120px; }
+  .airline-bar span { display: block; height: 10px; border-radius: 3px; background: var(--link-fg); }
+  .airline-form .form-row { padding: 8px 10px; }
+  .airline-form .form-row label { display: inline-block; min-width: 160px; }
+  .airline-pax { border: 1px solid var(--hairline-color); border-radius: 6px; padding: 10px; margin-bottom: 14px; }
+  .airline-pax .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .airline-pax .grid label { display: block; font-weight: 600; margin-bottom: 3px; }
+  .airline-pax .grid input, .airline-pax .grid select { width: 100%; box-sizing: border-box; }
+  .airline-hold { font-weight: 600; color: #ef6c00; }
+  .airline-table td, .airline-pax label, .airline-table th { unicode-bidi: plaintext; }
+</style>
+{% endblock %}
+
+{% block userlinks %}
+  {% get_current_language as LANGUAGE_CODE %}
+  <form action="{% url 'set_language' %}" method="post" style="display:inline">{% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {% if LANGUAGE_CODE == "ar" %}
+      <button type="submit" name="language" value="en" class="lang-switch">English</button>
+    {% else %}
+      <button type="submit" name="language" value="ar" class="lang-switch">العربية</button>
+    {% endif %}
+  </form> /
+  {{ block.super }}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "admin/airline/_wizard_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  <p class="airline-hold">
+    {% translate "Seats held until" %} {{ booking.hold_expires_at|date:"H:i:s" }}
+    (<span id="hold-left" data-expires="{{ booking.hold_expires_at|date:'c' }}"></span>)
+  </p>
+
+  <div class="module">
+    <h2>{% translate "PNR" %}: {{ booking.pnr }}</h2>
+    <table class="airline-table">
+      <thead><tr><th>{% translate "passenger" %}</th><th>{% translate "Flight" %}</th><th>{% translate "departure" %}</th>
+        <th>{% translate "seat" %}</th><th>{% translate "Class" %}</th><th>{% translate "price" %}</th></tr></thead>
+      <tbody>
+      {% for t in tickets %}
+        <tr><td>{{ t.passenger.full_name }}</td>
+            <td>{{ t.flight.flight_no }} {{ t.flight.origin.code }} → {{ t.flight.destination.code }}</td>
+            <td>{{ t.flight.departure_time|date:"Y-m-d H:i" }}</td><td>{{ t.seat.seat_number }}</td>
+            <td>{{ t.get_seat_class_display }}</td><td>{{ t.price }} {{ currency }}</td></tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr><th colspan="5">{% translate "total amount" %}</th><th>{{ booking.total_amount }} {{ currency }}</th></tr></tfoot>
+    </table>
+  </div>
+
+  <form method="post" class="airline-form">{% csrf_token %}
+    <fieldset class="module aligned">
+      <h2>{% translate "Payment" %}</h2>
+      <p class="help" style="padding:8px 10px">{% translate "Test mode: no real card is charged. Enter the receipt number for cash or bank payments." %}</p>
+      {% for field in form %}
+        <div class="form-row">{{ field.errors }}{{ field.label_tag }} {{ field }}{% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}</div>
+      {% endfor %}
+    </fieldset>
+    <div class="submit-row">
+      <input type="submit" class="default" name="pay" value="{% translate 'Confirm payment and issue tickets' %}">
+      <input type="submit" name="cancel" value="{% translate 'Cancel booking' %}" formnovalidate style="background:#c62828;color:#fff">
+    </div>
+  </form>
+</div>
+<script>
+(function () {
+  var el = document.getElementById("hold-left");
+  var end = new Date(el.dataset.expires).getTime();
+  function tick() {
+    var s = Math.max(0, Math.round((end - Date.now()) / 1000));
+    el.textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    if (s > 0) setTimeout(tick, 1000);
+  }
+  tick();
+})();
+</script>
+{% endblock %}

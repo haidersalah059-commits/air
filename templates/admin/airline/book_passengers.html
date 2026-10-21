@@ -1,0 +1,48 @@
+{% extends "admin/airline/_wizard_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module">
+    <h2>{% translate "Flights" %}</h2>
+    <table class="airline-table">
+      {% for leg in legs %}
+        <tr><td><strong>{{ leg.label }}</strong></td><td>{{ leg.flight.departure_time|date:"Y-m-d H:i" }}</td>
+            <td>{{ leg.class_label }}</td><td>{{ leg.price }} {{ currency }}</td>
+            <td>{% translate "Free seats" %}: {{ leg.seat_choices|length }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <form method="post">{% csrf_token %}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}<div class="errornote">{{ formset.non_form_errors|join:" " }}</div>{% endif %}
+    {% for form in formset %}
+      <div class="airline-pax">
+        <h3>{% translate "Passenger" %} {{ forloop.counter }}</h3>
+        <div class="grid">
+          {% for field in form.person_fields %}
+            <div>{{ field.label_tag }}{{ field }}{{ field.errors }}</div>
+          {% endfor %}
+        </div>
+        <div class="grid" style="margin-top:10px">
+          {% for field in form.seat_fields %}
+            <div>{{ field.label_tag }}{{ field }}{{ field.errors }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
+    <fieldset class="module aligned airline-form">
+      <div class="form-row">{{ contact.contact_email.errors }}{{ contact.contact_email.label_tag }} {{ contact.contact_email }}
+        <div class="help">{{ contact.contact_email.help_text }}</div></div>
+    </fieldset>
+
+    <p class="help">{% blocktranslate %}The chosen seats are held for {{ hold_minutes }} minutes while payment is completed.{% endblocktranslate %}</p>
+    <div class="submit-row">
+      <a class="button" href="{% url 'admin:airline_book_cart' %}">← {% translate "Back" %}</a>
+      <input type="submit" class="default" value="{% translate 'Hold seats and continue to payment' %}">
+    </div>
+  </form>
+</div>
+{% endblock %}

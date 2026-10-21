@@ -1,0 +1,44 @@
+{% extends "admin/airline/_wizard_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  {% if legs %}
+  <div class="module">
+    <h2>{% translate "Your trip" %} — {% translate "Passengers" %}: {{ passengers }}</h2>
+    <form method="post">{% csrf_token %}
+    <table class="airline-table">
+      <thead><tr>
+        <th>#</th><th>{% translate "Flight" %}</th><th>{% translate "route" %}</th><th>{% translate "departure" %}</th>
+        <th>{% translate "Class" %}</th><th>{% translate "Fare per passenger" %}</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for leg in legs %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ leg.flight.flight_no }}</td>
+          <td>{{ leg.flight.origin }} → {{ leg.flight.destination }}</td>
+          <td>{{ leg.flight.departure_time|date:"Y-m-d H:i" }}</td>
+          <td>{{ leg.class_label }}</td>
+          <td>{{ leg.price }} {{ currency }}</td>
+          <td><button type="submit" name="remove" value="{{ forloop.counter0 }}" class="button">{% translate "Remove" %}</button></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr><th colspan="5">{% translate "Estimated total" %}</th><th colspan="2">{{ total }} {{ currency }}</th></tr></tfoot>
+    </table>
+    </form>
+    <p class="help">{% translate "Fares are recalculated when the seats are held." %}</p>
+  </div>
+
+  <div class="submit-row" style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="button" href="{% url 'admin:airline_book_search' %}?return_from={{ last_leg.flight.destination_id }}&return_to={{ last_leg.flight.origin_id }}&seat_class={{ last_leg.seat_class }}">↩ {% translate "Add return flight" %}</a>
+    <a class="button" href="{% url 'admin:airline_book_search' %}?return_from={{ last_leg.flight.destination_id }}&seat_class={{ last_leg.seat_class }}">➕ {% translate "Add another flight (multi-city)" %}</a>
+    <a class="button default" href="{% url 'admin:airline_book_passengers' %}">{% translate "Continue: passengers and seats" %} →</a>
+    <form method="post" style="display:inline">{% csrf_token %}<button type="submit" name="clear" value="1" class="button" style="background:#c62828;color:#fff">{% translate "Start over" %}</button></form>
+  </div>
+  {% else %}
+    <p>{% translate "The trip is empty." %} <a href="{% url 'admin:airline_book_search' %}">{% translate "Search flights" %}</a></p>
+  {% endif %}
+</div>
+{% endblock %}

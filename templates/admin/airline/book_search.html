@@ -1,0 +1,60 @@
+{% extends "admin/airline/_wizard_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  {% if cart_legs %}
+    <p class="help">
+      {% translate "Flights in the trip:" %} {{ cart_legs|length }} —
+      <a href="{% url 'admin:airline_book_cart' %}">{% translate "Back to the trip" %}</a>
+    </p>
+  {% endif %}
+
+  <form method="get" class="airline-form">
+    <fieldset class="module aligned">
+      <h2>{% translate "Search flights" %}</h2>
+      {% if form.non_field_errors %}<div class="errornote">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+      {% for field in form %}
+        <div class="form-row">{{ field.errors }}{{ field.label_tag }} {{ field }}</div>
+      {% endfor %}
+    </fieldset>
+    <div class="submit-row"><input type="submit" class="default" value="{% translate 'Search flights' %}"></div>
+  </form>
+
+  {% if searched %}
+  <div class="module">
+    <h2>{% translate "Results" %}</h2>
+    <table class="airline-table">
+      <thead><tr>
+        <th>{% translate "Flight" %}</th><th>{% translate "route" %}</th><th>{% translate "departure" %}</th>
+        <th>{% translate "arrival" %}</th><th>{% translate "aircraft" %}</th><th>{% translate "Free seats" %}</th>
+        <th>{% translate "Fare per passenger" %}</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for r in results %}
+        <tr>
+          <td><strong>{{ r.flight.flight_no }}</strong>{% if r.flight.status == "delayed" %} <span style="color:#ef6c00">({{ r.flight.get_status_display }})</span>{% endif %}</td>
+          <td>{{ r.flight.origin.code }} → {{ r.flight.destination.code }}</td>
+          <td>{{ r.flight.departure_time|date:"Y-m-d H:i" }}</td>
+          <td>{{ r.flight.arrival_time|date:"H:i" }}</td>
+          <td>{{ r.flight.aircraft.model }}</td>
+          <td>{{ r.available }}</td>
+          <td><strong>{{ r.price }} {{ currency }}</strong></td>
+          <td>
+            <form method="post" action="{% url 'admin:airline_book_add' %}">{% csrf_token %}
+              <input type="hidden" name="flight" value="{{ r.flight.pk }}">
+              <input type="hidden" name="seat_class" value="{{ form.cleaned_data.seat_class }}">
+              <input type="hidden" name="passengers" value="{{ form.cleaned_data.passengers }}">
+              <input type="submit" class="default" value="{% translate 'Select' %}" {% if not r.enough %}disabled title="{% translate 'Not enough free seats' %}"{% endif %}>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8">{% translate "No flights found for this date." %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

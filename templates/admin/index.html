@@ -1,0 +1,61 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  <div class="airline-hero">
+    <div>
+      <h2>{% translate "Welcome," %} {% firstof user.get_short_name user.get_username %}</h2>
+      <p>{{ site_header }}</p>
+    </div>
+    <div class="plane">✈</div>
+  <div class="airline-actions">
+    {% if perms.airline.add_booking %}
+      <a class="button default" href="{% url 'admin:airline_book_search' %}">✈ {% translate "New booking" %}</a>
+    {% endif %}
+    {% if perms.airline.check_in_ticket %}
+      <a class="button" href="{% url 'admin:airline_ticket_changelist' %}?status__exact=issued">{% translate "Check-in desk" %}</a>
+    {% endif %}
+    {% if perms.airline.view_flight %}
+      <a class="button" href="{% url 'admin:airline_flight_changelist' %}">{% translate "Flights" %}</a>
+    {% endif %}
+    {% if perms.airline.view_reports %}
+      <a class="button" href="{% url 'admin:airline_reports' %}">{% translate "Reports" %}</a>
+    {% endif %}
+  </div>
+  </div>
+
+  <div class="airline-cards">
+    <div class="airline-card blue"><span class="icon">🛫</span><div class="num">{{ stats.flights_today }}</div><div class="lbl">{% translate "Flights today" %}</div></div>
+    <div class="airline-card orange"><span class="icon">⏱</span><div class="num" style="color:#ef6c00">{{ stats.delayed_today }}</div><div class="lbl">{% translate "Delayed today" %}</div></div>
+    <div class="airline-card red"><span class="icon">⛔</span><div class="num" style="color:#c62828">{{ stats.cancelled_today }}</div><div class="lbl">{% translate "Cancelled today" %}</div></div>
+    <div class="airline-card green"><span class="icon">🎫</span><div class="num">{{ stats.bookings_today }}</div><div class="lbl">{% translate "Bookings confirmed today" %}</div></div>
+    <div class="airline-card purple"><span class="icon">💺</span><div class="num">{{ stats.avg_occupancy|floatformat:1 }}%</div><div class="lbl">{% translate "Average occupancy" %}</div></div>
+    {% if perms.airline.view_reports %}
+      <div class="airline-card gold"><span class="icon">💰</span><div class="num">{{ stats.revenue_month|floatformat:0 }}</div><div class="lbl">{% translate "Net revenue this month" %} ({{ currency }})</div></div>
+    {% endif %}
+  </div>
+
+  {% if stats.next_departures %}
+  <div class="module">
+    <h2>{% translate "Next departures" %}</h2>
+    <table class="airline-table">
+      <thead><tr><th>{% translate "Flight" %}</th><th>{% translate "route" %}</th><th>{% translate "departure" %}</th><th>{% translate "gate" %}</th><th>{% translate "status" %}</th></tr></thead>
+      <tbody>
+      {% for f in stats.next_departures %}
+        <tr>
+          <td class="flight-no">{% if perms.airline.view_flight %}<a href="{% url 'admin:airline_flight_change' f.pk %}">{{ f.flight_no }}</a>{% else %}{{ f.flight_no }}{% endif %}</td>
+          <td>{{ f.origin.code }} → {{ f.destination.code }}</td>
+          <td>{{ f.departure_time|date:"Y-m-d H:i" }}</td>
+          <td>{{ f.gate|default:"-" }}</td>
+          <td><span class="badge badge-{{ f.status }}">{{ f.get_status_display }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+</div>
+{% endblock %}

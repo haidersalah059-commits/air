@@ -1,0 +1,51 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">{% translate "Home" %}</a> › {{ title }}</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="airline-cards">
+    <div class="airline-card"><div class="num">{{ total_revenue|floatformat:2 }}</div><div class="lbl">{% translate "Total net revenue" %} ({{ currency }})</div></div>
+    <div class="airline-card"><div class="num">{{ avg_occupancy|floatformat:1 }}%</div><div class="lbl">{% translate "Average occupancy" %}</div></div>
+    <div class="airline-card"><div class="num">{{ cancellations.pct }}%</div><div class="lbl">{% translate "Cancellation rate" %} ({{ cancellations.cancelled }} / {{ cancellations.total }})</div></div>
+    <div class="airline-card"><div class="num">{{ cancellations.expired }}</div><div class="lbl">{% translate "Unpaid holds that expired" %}</div></div>
+  </div>
+
+  <div class="module">
+    <h2>{% translate "Monthly net revenue" %}</h2>
+    <table class="airline-table">
+      {% for m in monthly %}
+        <tr><td style="width:90px">{{ m.month }}</td>
+            <td><div class="airline-bar"><span style="width:{{ m.pct }}%"></span></div></td>
+            <td style="width:130px;text-align:end">{{ m.total|floatformat:2 }} {{ currency }}</td></tr>
+      {% empty %}<tr><td>{% translate "No payments yet." %}</td></tr>{% endfor %}
+    </table>
+  </div>
+
+  <div class="module">
+    <h2>{% translate "Most popular destinations" %}</h2>
+    <table class="airline-table">
+      <thead><tr><th>{% translate "Destination" %}</th><th>{% translate "Tickets sold" %}</th></tr></thead>
+      {% for d in destinations %}
+        <tr><td>{{ d.flight__destination__code }} – {{ d.flight__destination__city }}</td><td>{{ d.count }}</td></tr>
+      {% empty %}<tr><td colspan="2">{% translate "No tickets yet." %}</td></tr>{% endfor %}
+    </table>
+  </div>
+
+  <div class="module">
+    <h2>{% translate "Flight occupancy (last 7 days and upcoming)" %}</h2>
+    <table class="airline-table">
+      <thead><tr><th>{% translate "Flight" %}</th><th>{% translate "route" %}</th><th>{% translate "departure" %}</th>
+        <th>{% translate "Seats sold" %}</th><th>{% translate "occupancy" %}</th></tr></thead>
+      {% for r in occupancy %}
+        <tr><td>{{ r.flight.flight_no }}</td><td>{{ r.flight.origin.code }} → {{ r.flight.destination.code }}</td>
+            <td>{{ r.flight.departure_time|date:"Y-m-d H:i" }}</td><td>{{ r.sold }} / {{ r.total }}</td>
+            <td><div class="airline-bar" title="{{ r.pct }}%"><span style="width:{{ r.pct }}%"></span></div> {{ r.pct }}%</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
